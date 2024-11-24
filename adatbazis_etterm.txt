@@ -1,0 +1,55 @@
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,  -- Felhasználó egyedi azonosítója
+    name VARCHAR(100) NOT NULL,              -- Felhasználó neve
+    email VARCHAR(100) NOT NULL UNIQUE,      -- Felhasználó email címe (egyedi)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- Regisztráció dátuma
+);
+
+
+CREATE TABLE tables (
+    table_id INT AUTO_INCREMENT PRIMARY KEY,  -- Asztal egyedi azonosítója
+    location ENUM('terasz', 'belter') NOT NULL,  -- Asztal helyszíne (terasz vagy belső tér)
+    seats INT NOT NULL,                        -- Az asztalnál elhelyezhető személyek száma
+    status ENUM('szabad', 'foglalt') DEFAULT 'szabad'  -- Asztal státusza
+);
+
+
+CREATE TABLE reservations (
+    reservation_id INT AUTO_INCREMENT PRIMARY KEY,  -- Foglalás egyedi azonosítója
+    user_id INT NOT NULL,                           -- Felhasználó, aki a foglalást végezte
+    table_id INT NOT NULL,                          -- Az asztal, amit foglaltak
+    reservation_date DATE NOT NULL,                 -- A foglalás dátuma
+    reservation_time TIME NOT NULL,                 -- A foglalás időpontja
+    num_people INT NOT NULL,                       -- A foglalás során érkező személyek száma
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- A foglalás létrehozásának időpontja
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,  -- Kapcsolat a felhasználók táblájával
+    FOREIGN KEY (table_id) REFERENCES tables(table_id) ON DELETE CASCADE  -- Kapcsolat az asztalok táblájával
+);
+
+
+INSERT INTO users (name, email) VALUES
+('Kovács István', 'kovacs.istvan@example.com'),
+('Nagy Anna', 'nagy.anna@example.com');
+
+INSERT INTO tables (location, seats, status) VALUES
+('terasz', 4, 'szabad'),
+('belter', 2, 'szabad'),
+('terasz', 6, 'szabad'),
+('belter', 4, 'foglalt');
+
+INSERT INTO reservations (user_id, table_id, reservation_date, reservation_time, num_people) VALUES
+(1, 3, '2024-11-25', '18:30:00', 4),
+(2, 4, '2024-11-25', '19:00:00', 2);
+
+
+SELECT r.reservation_id, r.reservation_date, r.reservation_time, r.num_people, t.location, t.seats
+FROM reservations r
+JOIN tables t ON r.table_id = t.table_id
+WHERE r.user_id = 1;
+
+
+SELECT t.table_id, t.location, t.seats
+FROM tables t
+LEFT JOIN reservations r ON t.table_id = r.table_id
+WHERE (r.reservation_id IS NULL OR (r.reservation_date != '2024-11-25' OR r.reservation_time != '18:30:00'))
+AND t.status = 'szabad';
