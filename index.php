@@ -1,10 +1,10 @@
 <?php
-// Adatbázis kapcsolat beillesztése
+
 include('db.php');
 
-// Ha a formot elküldik, akkor dolgozd fel az adatokat
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Űrlap adatainak beolvasása
+    
     $name = htmlspecialchars($_POST['name']);
     $email = htmlspecialchars($_POST['email']);
     $date = $_POST['date'];
@@ -12,33 +12,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $people = $_POST['people'];
     $location = $_POST['helyszin'];
 
-    // Felhasználó hozzáadása az adatbázishoz, ha még nincs
+    
     $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
     if (!$user) {
-        // Ha a felhasználó nem létezik, akkor hozzáadjuk
+        
         $stmt = $pdo->prepare("INSERT INTO users (name, email) VALUES (?, ?)");
         $stmt->execute([$name, $email]);
-        $user_id = $pdo->lastInsertId(); // Az új felhasználó ID-ja
+        $user_id = $pdo->lastInsertId(); 
     } else {
-        // Ha létezik a felhasználó, használjuk a meglévő ID-t
+        
         $user_id = $user['user_id'];
     }
 
-    // Szabad asztal keresése a kívánt helyszín és dátum/időpont alapján
+    
     $stmt = $pdo->prepare("SELECT * FROM tables WHERE location = ? AND status = 'szabad' LIMIT 1");
     $stmt->execute([$location]);
     $table = $stmt->fetch();
 
     if ($table) {
-        // Foglalás hozzáadása az adatbázishoz
+        
         $stmt = $pdo->prepare("INSERT INTO reservations (user_id, table_id, reservation_date, reservation_time, num_people) 
                                VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$user_id, $table['table_id'], $date, $time, $people]);
 
-        // Asztal státuszának frissítése
+        
         $stmt = $pdo->prepare("UPDATE tables SET status = 'foglalt' WHERE table_id = ?");
         $stmt->execute([$table['table_id']]);
 
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </div>
 
 <div class="footer">
-    <p>&copy; 2024 Étterem - Minden jog fenntartva.</p>
+    <p>&copy; Olasz étterem</p>
 </div>
 
 </body>
